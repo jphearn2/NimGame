@@ -17,20 +17,24 @@ export class Nim extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = { gameOver: false, Player: 0, stacks: [] };
+        let stoneCount = 0;
         for (let i = 0; i < props.stackLengths.length; i++) {
             this.state.stacks.push([]);
             for (let j = 0; j < props.stackLengths[i]; j++) {
-                this.state.stacks[i].push({ selected: false, onClick: () =>{ this.setState({ gameOver: false, Player: this.state.Player, stacks: this.flipButtonAt(i, j) }); this.setOnlyOneRow(); } })
+                this.state.stacks[i].push({ key: stoneCount, selected: false, onClick: () =>{ this.setState({ gameOver: false, Player: this.state.Player, stacks: this.flipButtonAt(i, j) }); this.setOnlyOneRow(); } })
+                stoneCount++;
             }
         }
     }
 
     resetNim(): IState{
         let newGame: IState = { gameOver: false, Player: 0, stacks: [] };
+        let stoneCount = 0;
         for (let i = 0; i < this.props.stackLengths.length; i++) {
             newGame.stacks.push([]);
             for (let j = 0; j < this.props.stackLengths[i]; j++) {
-                newGame.stacks[i].push({ selected: false, onClick: () =>{ this.setState({ gameOver: false, Player: this.state.Player, stacks: this.flipButtonAt(i, j) }); this.setOnlyOneRow(); } })
+                newGame.stacks[i].push({ key: stoneCount, selected: false, onClick: () =>{ this.setState({ gameOver: false, Player: this.state.Player, stacks: this.flipButtonAt(i, j) }); this.setOnlyOneRow(); } });
+                stoneCount++;
             }
         }
         return newGame;
@@ -41,7 +45,7 @@ export class Nim extends React.Component<IProps, IState> {
         let newStones: IStone[][] = [...this.state.stacks];
 
         // debugger
-        newStones[stack][stone] = { selected: !this.state.stacks[stack][stone].selected, onClick: () =>{ this.setState({ gameOver: false, Player: this.state.Player, stacks: this.flipButtonAt(stack, stone) }); this.setOnlyOneRow(); } }
+        newStones[stack][stone] = { key: this.state.stacks[stack][stone].key, selected: !this.state.stacks[stack][stone].selected, onClick: () =>{ this.setState({ gameOver: false, Player: this.state.Player, stacks: this.flipButtonAt(stack, stone) }); this.setOnlyOneRow(); } }
 
         return newStones;
     }
@@ -58,7 +62,7 @@ export class Nim extends React.Component<IProps, IState> {
     resetStack(stack: number): IStone[][] {
         let newStones = [...this.state.stacks];
 
-        newStones[stack] = newStones[stack].map((stone) => { return { selected: false, onClick: stone.onClick } })
+        newStones[stack] = newStones[stack].map((stone) => { return { key: stone.key, selected: false, onClick: stone.onClick } })
 
         return newStones;
     }
@@ -73,25 +77,21 @@ export class Nim extends React.Component<IProps, IState> {
     }
 
     removeAllSelected(): IStone[][] {
+        let newStones: IStone[][] = [...this.state.stacks];
+
         for (let stack = 0; stack < this.state.stacks.length; stack++) {
-            // newStones.push([]);
+            newStones.push([]);
             for (let stone = 0; stone < this.state.stacks[stack].length; stone++) {
 
-                if(this.state.stacks[stack][stone].selected){
-                    this.state.stacks[stack].splice(stone, 1);
+                if(newStones[stack][stone].selected){
+                    newStones[stack].splice(stone, 1);
                     stone = stone - 1;
                 }
-                // if (!this.state.stacks[stack][stone].selected) {
-                //     // debugger
-                //     newStones[stack].push( { selected: false, onClick: () =>{ this.setState({ stacks: this.flipButtonAt(stack, newStones[stack].length) }); this.setOnlyOneRow(); } }  );
-                //     // debugger
-                // }
             }
         }
-        let newStones: IStone[][] = [...this.state.stacks];
         for(let stack = 0; stack < newStones.length; stack++){
             for(let stone = 0; stone < newStones[stack].length; stone++){
-                newStones[stack][stone] = {selected: false, onClick: () =>{ this.setState({ Player: this.state.Player, stacks: this.flipButtonAt(stack, stone) }); this.setOnlyOneRow(); } };
+                newStones[stack][stone] = { key: newStones[stack][stone].key, selected: false, onClick: () =>{ this.setState({ Player: this.state.Player, stacks: this.flipButtonAt(stack, stone) }); this.setOnlyOneRow(); } };
             }
         }
 
@@ -102,13 +102,24 @@ export class Nim extends React.Component<IProps, IState> {
         return (this.state.Player + 1) % 2
     }
 
-    gameOver(): boolean{
-        for(let stack = 0; stack < this.state.stacks.length; stack++)
+    gameOver(stacks: IStone[][]): boolean{
+        for(let stack = 0; stack < stacks.length; stack++)
         {
-            if(this.state.stacks[stack].length > 0)
+            if(stacks[stack].length > 0)
                 return false;
         }
         return true;
+    }
+
+    handleSubmit(){
+        const newStacks = this.removeAllSelected();
+        const isGameOver = this.gameOver(newStacks);
+
+        this.setState({
+            stacks: newStacks,
+            gameOver: isGameOver,
+            Player: this.changePlayer()
+        })
     }
 
     render() {
@@ -142,11 +153,7 @@ export class Nim extends React.Component<IProps, IState> {
                     </div>
                     <br />
                     <div>
-                        <button onClick={ () => { 
-                            this.setState( { Player: this.changePlayer(), stacks: this.removeAllSelected(), gameOver: false } ); 
-                            this.setState((prev) => ({ ...prev, gameOver: this.gameOver() }) ) 
-                        }
-                        }>submit</button>
+                        <button onClick={ () => this.handleSubmit() }>submit</button>
                     </div>
                 </div>
             )

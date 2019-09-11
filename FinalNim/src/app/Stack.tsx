@@ -12,9 +12,9 @@ export function Stack(input: IProps){
         <div>
             {input.stones.map( (stone,index) => {
                 if(stone.selected)
-                    return <button key={index} onClick={stone.onClick}>selected</button>
+                    return <button key={stone.key} onClick={stone.onClick}>selected</button>
                 else
-                    return <button key={index} onClick={stone.onClick}>free</button>
+                    return <button key={stone.key} onClick={stone.onClick}>free</button>
             } )}
             <br/>
         </div>
