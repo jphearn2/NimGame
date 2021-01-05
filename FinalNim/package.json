@@ -14,7 +14,7 @@
   "private": true,
   "repository": "https://github.com/el-kamino/UI_StarterProject",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-router-dom": "^5.0.0",
